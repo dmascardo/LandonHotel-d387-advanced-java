@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Component({
@@ -13,38 +13,37 @@ export class AppComponent implements OnInit {
   constructor(private httpClient: HttpClient) {}
 
   private baseURL: string = 'http://localhost:8080';
-  private getUrl: string = this.baseURL + '/room/reservation/v1/';
-  private postUrl: string = this.baseURL + '/room/reservation/v1';
 
-  public submitted!: boolean;
   roomsearch!: FormGroup;
-  rooms!: Room[];
+  rooms: Room[] = [];
   request!: ReserveRoomRequest;
-  currentCheckInVal!: string;
-  currentCheckOutVal!: string;
+  currentCheckInVal: string = '';
+  currentCheckOutVal: string = '';
 
-  englishMessage: string = '';
-  frenchMessage: string = '';
-  presentationTimes: { ET: string; MT: string; UTC: string } = { ET: '', MT: '', UTC: '' };
+  englishMessage: string = 'Loading...';
+  frenchMessage: string = 'Loading...';
+  presentationTimes: { ET: string; MT: string; UTC: string } = {
+    ET: 'Loading...',
+    MT: 'Loading...',
+    UTC: 'Loading...'
+  };
 
   ngOnInit() {
-    this.httpClient.get<{ english: string; french: string }>("http://localhost:8080/api/welcome")
+    this.httpClient.get<{ english: string; french: string }>(this.baseURL + "/api/welcome")
       .subscribe({
         next: (response) => {
-          console.log("Welcome response:", response);
           this.englishMessage = response.english;
           this.frenchMessage = response.french;
         },
-        error: (err) => console.error("Error fetching welcome messages", err)
+        error: (err) => console.error("Error fetching welcome:", err)
       });
 
-    this.httpClient.get<{ ET: string; MT: string; UTC: string }>("http://localhost:8080/api/hotel-presentation-times")
+    this.httpClient.get<{ ET: string; MT: string; UTC: string }>(this.baseURL + "/api/hotel-presentation-times")
       .subscribe({
         next: (data) => {
           this.presentationTimes = data;
-          console.log("Time zone response:", data);
         },
-        error: (err) => console.error("Error fetching presentation times", err)
+        error: (err) => console.error("Error fetching times:", err)
       });
 
     this.roomsearch = new FormGroup({
@@ -52,20 +51,16 @@ export class AppComponent implements OnInit {
       checkout: new FormControl('')
     });
 
-    const roomsearchValueChanges$ = this.roomsearch.valueChanges;
-    roomsearchValueChanges$.subscribe(x => {
-      this.currentCheckInVal = x.checkin;
-      this.currentCheckOutVal = x.checkout;
+    this.roomsearch.valueChanges.subscribe(x => {
+      this.currentCheckInVal = x.checkin || '';
+      this.currentCheckOutVal = x.checkout || '';
     });
   }
 
-  onSubmit({ value, valid }: { value: Roomsearch, valid: boolean }) {
-    this.getAll().subscribe(
-      rooms => {
-        console.log(Object.values(rooms)[0]);
-        this.rooms = <Room[]>Object.values(rooms)[0];
-      }
-    );
+  onSubmit(formGroup: FormGroup) {
+    this.getAll().subscribe(rooms => {
+      this.rooms = <Room[]>Object.values(rooms)[0];
+    });
   }
 
   reserveRoom(value: string) {
@@ -74,12 +69,10 @@ export class AppComponent implements OnInit {
   }
 
   createReservation(body: ReserveRoomRequest) {
-    let bodyString = JSON.stringify(body);
     const options = {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     };
-
-    this.httpClient.post(this.postUrl, body, options)
+    this.httpClient.post(this.baseURL + '/room/reservation/v1', body, options)
       .subscribe(res => console.log(res));
   }
 
@@ -114,4 +107,3 @@ export class ReserveRoomRequest {
     this.checkout = checkout;
   }
 }
-

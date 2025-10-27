@@ -16,6 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class ApiConfig implements  WebMvcConfigurer{
 
+
 //Not needing the object member is a change in recent versions of spring.
 
 //    @Bean
