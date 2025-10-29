@@ -1,11 +1,9 @@
-FROM ubuntu:latest
-LABEL authors="denis"
+
 
 # Start with a base image containing a Java runtime
 FROM openjdk:17-jdk-slim
 
-# Set the working directory inside the Docker image
-WORKDIR /app
+LABEL maintainers="denis"
 
 # Copy the JAR file provided by mvn clean package
 COPY target/D387_sample_code-0.0.2-SNAPSHOT.jar app.jar
